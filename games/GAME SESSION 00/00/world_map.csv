@@ -1,0 +1,49 @@
+region code,region name,hemisphere,climate,terrain,borders,soviet dominance,US dominance, british dominance,crisis damage
+1,American Arctic,North,Polar,Mixed,"3,4,5,6,14,7,2",5,80,5,0
+2,Northern Polar Region,North,Polar,Mixed,"1,7,3",30,30,10,0
+3,Russian Arctic,North,Polar,Mixed,"2,7,8,9,10,11,4",80,5,5,0
+4,Northern Pacific,North,Temperate,Ocean,"1,5,11,23,33,12,6,24",
+5,Alaska,North,Cold,Land,"1,4,6"
+6,Canada,North,Cold,Land,"5,4,12,13,14,1"
+7,Greenland and Iceland,North,Cold,Mixed,"1,2,3,8,15,14"
+8,GIUK gap,North,Cold,Ocean,"7,3,9,17,16,15"
+9,Scandinavia,North,Cold,Land,"3,10,19,18,8"
+10,Western USSR,North,Cold,Land,"3,11,22,21,19,9"
+11,Eastern USSR,North,Cold,Land,"3,4,23,10"
+12,Western US,North,Temperate,Land,"4,6,13,24"
+13,Central US,North,Temperate,Land,"6,14,24,12"
+14,Eastern US,North,Temperate,Land,"13,6,1,7,15,25"
+15,North Atlantic,North,Temperate,Ocean,"25,14,7,8,16,28,27,26"
+16,Ireland,North,Temperate,Land,"15,8,17,28"
+17,United Kingdom,North,Temperate,Land,"8,18,14,29"
+18,North Sea,North,Temperate,Ocean,"17,9,19,20,29"
+19,Baltic Sea,North,Cold,Ocean,"9,10,20,18"
+20,North West Europe,North,Temperate,Land,"18,19,21,29"
+21,Eastern Europe,North,Temperate,Land,"20,10,22,31"
+22,Central Asia,North,Sub-tropical,Land,"31,21,10,23,32,41,40"
+23,East Asia,North,Sub-tropical,Land,"22,11,4,45,32"
+24,Central America,North,Tropical,Land,"4,12,13,25,35,34,33"
+25,Caribbean,North,Tropical,Mixed,"24,14,14,26,35"
+26,South Atlantic,South,Temperate,Ocean,"25,15,27,38,37,48,47,46,36,35"
+27,West Africa,North,Tropical,Land,"15,28,30,39,38,26"
+28,Biscay,North,Sub-tropical,Ocean,"15,16,29,30,27"
+29,Southern Europe,North,Sub-tropical,Land,"28,17,18,20,31,30"
+30,Mediterranean,North,Sub-tropical,Ocean,"28,29,31,39,27"
+31,Levant,North,Sub-tropical,Land,"29,30,40,22,21"
+32,Southern Asia,North,Tropical,Land,"22,23,45,42,41"
+33,South Pacific, South,Sub-tropical,Ocean,"4,45,44,43,48,24,34,36,46"
+34,Andes,South,Sub-Tropical
+35,Amazon,South,Tropical
+36,Southern Cone,South,Temperate
+37,Southern Africa,South,Sub-tropical
+38,Central Africa,South,Tropical
+39,North Africa,North,Sub-tropical
+40,Middle East,North,Sub-tropical
+41,Gulf of Arabia,North,Sub-tropical
+42,Indian Ocean,South,Tropical
+43,Australia,South,Sub-tropical
+44,Coral Sea,South,Sub-tropical
+45,South-East Asia,North,Tropical
+46,Western Southern Ocean,South,Polar
+47,Southern Polar Region,South,Polar
+48,Eastern Southern Ocean,South,Polar

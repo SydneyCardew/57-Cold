@@ -1,47 +1,267 @@
-from random import seed, randint
+from random import seed, randint, uniform
+from statistics import mean
 from dataclasses import dataclass
+from atomic_clock import Clock
 
 
 class Game:
     """overall container for game objects"""
 
-    def __init__(self, reg_dict, min_dict, dept_dict):
+    def __init__(self, reg_dict, min_dict, dept_dict, world, uk, computer, press_dict):
         self.reg_dict = reg_dict
         self.min_dict = min_dict
         self.dept_dict = dept_dict
+        self.world = world
+        self.uk = uk
+        self.computer = computer
+        self.press_dict = press_dict
+
+    def tick(self):
+        self.world.tick()
+        self.uk.tick()
+        for region in self.reg_dict.values():
+            region.tick(self.uk)
+
+    def poll(self):
+        hmg_pops = []
+        hmo_pops = []
+        lib_pops = []
+        mlwp_pops = []
+        mrwp_pops = []
+        for region in self.reg_dict.values():
+            hmg_pops.extend([region.hmg_pop] * region.pop_portion)
+            hmo_pops.extend([region.hmo_pop] * region.pop_portion)
+            lib_pops.extend([region.lib_pop] * region.pop_portion)
+            mlwp_pops.extend([region.mlwp_pop] * region.pop_portion)
+            mrwp_pops.extend([region.mrwp_pop] * region.pop_portion)
+        hmg_pop = mean(hmg_pops)
+        hmo_pop = mean(hmo_pops)
+        lib_pop = mean(lib_pops)
+        mlwp_pop = mean(mlwp_pops)
+        mrwp_pop = mean(mrwp_pops)
+        return f"CURRENT POLLING:\n" \
+               f"{self.uk.monarch_pronoun} MAJESTY'S GOVERNMENT: {round(hmg_pop, 2)}%\n" \
+               f"{self.uk.monarch_pronoun} MAJESTY'S OPPOSITION: {round(hmo_pop, 2)}%\n" \
+               f"LIBERALS: {round(lib_pop, 2)}%\n" \
+               f"MINOR PARTIES OF THE LEFT: {round(mlwp_pop, 2)}%\n" \
+               f"MINOR PARTIES OF THE RIGHT: {round(mrwp_pop, 2)}%"
+
+
+
+
+class Computer:
+
+    def __init__(self, secret_project_counter, runtime):
+        self.secret_project_counter = secret_project_counter
+        self.runtime = runtime
+
+    def tick(self):
+        self.runtime += 1
+
+
+class World:
+
+    def __init__(self, year, day):
+        self.year = year
+        self.year_day = day
+        self.clock = Clock(self.year, self.year_day)
+
+    def tick(self):
+        self.clock.tick()
+
+
+class WorldMap:
+
+    def __init__(self):
+        pass
 
 
 class UK:
 
-    def __init__(self, population):
-        self.population = population
+    def __init__(self, population,
+                 population_health,
+                 stability, government,
+                 monarch_pronoun):
+
+        self.population = int(population)
+        self.population_health = int(population_health)
+        self.stability = int(stability)
+        self.government = government
+        self.monarch_pronoun = monarch_pronoun.upper()
+        self.political_drift_lr = 0
+        self.political_drift_go = 0
+        self.political_movement = {0.1: "almost undetectable",
+                                   0.2: "very weak",
+                                   0.3: "weak",
+                                   0.4: "small but noticeable",
+                                   0.5: "noticeable",
+                                   0.6: "very noticeable",
+                                   0.7: "distinct",
+                                   0.8: "strong",
+                                   0.9: "very strong",
+                                   1.0: "dramatic"}
+
+    def political_drift(self, paper, approval):
+        """this function transforms the press's reaction to press conferences and statements into opihion vectors"""
+
+        # sf is the 'stability factor'. The less stable the nation the wilder the political swings will be
+        sf = (100 - self.stability) / 10
+
+        if approval:
+            right_approval = 1 if paper.ideology == 'right' else 0
+            left_approval = 1 if paper.ideology == 'left' else 0
+            centre_approval = 1 if paper.ideology == 'center' else 0
+            gov_approval = 1 if paper.endorsement == 'government' else 0
+            opp_approval = 1 if paper.endorsement == 'opposition' else 0
+            ind_approval = 1 if paper.endorsement == 'independent' else 0
+        else:
+            right_approval = -1 if paper.ideology == 'right' else 0
+            left_approval = -1 if paper.ideology == 'left' else 0
+            centre_approval = -1 if paper.ideology == 'center' else 0
+            gov_approval = -1 if paper.endorsement == 'government' else 0
+            opp_approval = -1 if paper.endorsement == 'opposition' else 0
+            ind_approval = -1 if paper.endorsement == 'independent' else 0
+
+        if gov_approval > 0:
+            shift = (uniform(0.1, 0.2) * sf)
+            self.political_drift_go += shift
+            self.political_drift_lr += shift if self.government == 'right' else -shift
+        elif gov_approval < 0:
+            shift = (uniform(0.1, 0.2) * sf)
+            self.political_drift_go -= shift
+            self.political_drift_lr += -shift if self.government == 'right' else shift
+        else:
+            self.political_drift_go += (uniform(-0.04, 0.05) * sf)
+
+        if opp_approval > 0:
+            shift = (uniform(0.1, 0.2) * sf)
+            self.political_drift_go -= shift
+            self.political_drift_lr += -shift if self.government == 'right' else shift
+        elif opp_approval < 0:
+            shift = (uniform(0.1, 0.2) * sf)
+            self.political_drift_go += shift
+            self.political_drift_lr += shift if self.government == 'right' else -shift
+        else:
+            self.political_drift_go += (uniform(-0.04, 0.05) * sf)
+
+        if ind_approval > 0:
+            self.political_drift_go += (uniform(0.1, 0.2) * sf) if self.political_drift_go < 0 \
+                else (uniform(-0.2, -0.1) * sf)
+        elif ind_approval < 0:
+            self.political_drift_go += (uniform(0.1, 0.2) * sf) if self.political_drift_go > 0 \
+                else (uniform(-0.2, -0.1) * sf)
+        else:
+            self.political_drift_go += (uniform(-0.04, 0.05) * sf)
+
+        if right_approval > 0:
+            self.political_drift_lr += (uniform(0.01, 0.05) * sf)
+        elif right_approval < 0:
+            self.political_drift_lr -= (uniform(0.01, 0.05) * sf)
+        else:
+            self.political_drift_lr += (uniform(-0.01, 0.01) * sf)
+
+        if left_approval > 0:
+            self.political_drift_lr -= (uniform(0.01, 0.05) * sf)
+        elif left_approval < 0:
+            self.political_drift_lr += (uniform(0.01, 0.05) * sf)
+        else:
+            self.political_drift_lr += (uniform(-0.01, 0.01) * sf)
+
+        if centre_approval > 0:
+            self.political_drift_lr += (uniform(0.01, 0.05) * sf) if self.political_drift_lr < 0 \
+                else (uniform(-0.05, -0.01) * sf)
+        elif centre_approval < 0:
+            self.political_drift_lr += (uniform(0.01, 0.05) * sf) if self.political_drift_lr > 0 \
+                else (uniform(-0.05, -0.01) * sf)
+        else:
+            self.political_drift_lr += (uniform(-0.01, 0.01) * sf)
+
+        lr_drift_amount = abs(round(self.political_drift_lr, 1))
+        if lr_drift_amount > 1.0:
+            lr_drift_amount = 1.0
+
+        if self.political_drift_lr < -0.05:
+            lr_drift_direction = f'showing a {self.political_movement[lr_drift_amount]} shift to the left'
+        elif self.political_drift_lr > 0.05:
+            lr_drift_direction = f'showing a {self.political_movement[lr_drift_amount]} shift to the right'
+        else:
+            lr_drift_direction = 'showing no clear change'
+
+        go_drift_amount = abs(round(self.political_drift_go, 1))
+        if go_drift_amount > 1.0:
+            go_drift_amount = 1.0
+
+        if self.political_drift_go < -0.05:
+            go_drift_direction = f'showing a {self.political_movement[go_drift_amount]} shift towards the opposition'
+        elif self.political_drift_go > 0.05:
+            go_drift_direction = f'showing a {self.political_movement[go_drift_amount]} shift towards the government'
+        else:
+            go_drift_direction = 'showing no clear change'
+
+        r_string = f"The readers of {paper.name} absorb that paper's " \
+                   f"{'positive' if approval else 'negative'} coverage of the recent statements.\n" \
+                   f"Preliminary polling shows the nation is {lr_drift_direction} ideologically,\n" \
+                   f"and that the sentiment of voters is {go_drift_direction}."
+
+        return Reaction(self.political_drift_lr, self.political_drift_go, r_string)
+
+    def tick(self):
+        pass
 
 
 class Region:
 
-    def __init__(self, id, name, hmg_pop=40, hmo_pop=30, lib_pop=20, mrwp_pop=5, mlwp_pop=5):
+    def __init__(self, id, name, pop_portion, hmg_pop=40, hmo_pop=30, lib_pop=20, mrwp_pop=5, mlwp_pop=5):
         self.id = id
         self.name = name
+        self.pop_portion = int(pop_portion)
         self.hmg_pop = hmg_pop
         self.hmo_pop = hmo_pop
         self.lib_pop = lib_pop
         self.mrwp_pop = mrwp_pop
         self.mlwp_pop = mlwp_pop
-        self.party_popularity = {"Her Majesty's Government": hmg_pop,
-                                 "Her Majesty's Opposition": hmo_pop,
-                                 "Liberal Party": lib_pop,
-                                 "Minor Parties of the Right": mrwp_pop,
-                                 "Minor Parties of the Left:": mlwp_pop}
+        self.party_pop()
+
+    def party_pop(self):
+        self.party_popularity = {"Her Majesty's Government": self.hmg_pop,
+                                 "Her Majesty's Opposition": self.hmo_pop,
+                                 "Liberal Party": self.lib_pop,
+                                 "Minor Parties of the Right": self.mrwp_pop,
+                                 "Minor Parties of the Left:": self.mlwp_pop}
+
+    def tick(self, uk):
+        self.hmg_pop += uk.political_drift_go / 2
+        self.hmo_pop -= uk.political_drift_go / 2
+        self.lib_pop += abs(uk.political_drift_go / 2)
+        self.lib_pop -= abs(uk.political_drift_lr)
+        self.mrwp_pop += uk.political_drift_lr / 2
+        self.mlwp_pop -= uk.political_drift_lr / 2
+        if uk.government == 'right':
+            self.hmg_pop += uk.political_drift_lr / 2
+            self.hmo_pop -= uk.political_drift_lr / 2
+        elif uk.government == 'left':
+            self.hmg_pop -= uk.political_drift_lr / 2
+            self.hmo_pop += uk.political_drift_lr / 2
+        else:
+            self.mrwp_pop += uk.political_drift_lr / 2
+            self.mlwp_pop -= uk.political_drift_lr / 2
+
+
+
+class WorldRegion:
+
+    def __init__(self):
+        pass
 
 
 class Minister:
 
-    def __init__(self, id, name, p_name, region):
+    def __init__(self, id, name, p_name, region, popularity=0):
         self.id = id
         self.name = name
         self.p_name = p_name
         self.region = region
-        self.pop = 0
+        self.pop = popularity
         self.pm = False
 
     def csv_rep(self):
@@ -49,6 +269,7 @@ class Minister:
 
 
 class Ministry:
+    """This class contains information and methods relating to Ministries"""
 
     def __init__(self, id, name, title, minister, starting_morale=70, f_budget=100, e_budget=20, s_budget=20):
         self.id = id
@@ -170,6 +391,23 @@ class Outcome:
     morale_change: int
     outcome_score: int
     a_string: str
+
+
+@dataclass
+class Paper:
+    """class storing the positions of papers"""
+    id: str
+    name: str
+    ideology: str
+    endorsement: str
+
+
+@dataclass
+class Reaction:
+    """class storing the reaction to conference"""
+    lr_drift: float
+    go_drift: float
+    r_string: str
 
 
 

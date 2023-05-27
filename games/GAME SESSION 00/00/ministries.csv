@@ -1,0 +1,11 @@
+id code,ministry name,minister title,minister,starting_morale
+M1,Office of the Leader of the Opposition,Leader of the Opposition,P1,70
+M2,Ministry of Administrative Affairs,Minister for Administrative Affairs,P2,70
+M3,Ministry of Development,Minister for Development,P3,70
+M4,Ministry of Intelligence and Civil Defence,Minister of Intelligence and Civil Defence,P4,70
+M5,Ministry of Health and Social Welfare,Minister of Health and Social Welfare,P5,70
+M6,Ministry of War,Minister of War,P6,70
+M7,Foreign Office,Foreign Secretary,P7,70
+M8,Treasury,Chancellor of the Exchequer,P8,70
+M9,Home Office,Home Secretary,P9,70
+M10,Office of the Prime Minister,Prime Minister,P10,70
