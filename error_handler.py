@@ -20,3 +20,7 @@ def error_handler(code):
             return "ERROR 008: INVALID PAPER ID"
         case 9:
             return "ERROR 009: INVALID APPROVAL ARGUMENT (MUST BE Y/N)"
+        case 10:
+            return "ERROR 010: INCORRECT USE OF QUOTATION MARKS"
+        case 11:
+            return "ERROR 011: INVALID TIME (NON-NUMERIC)"

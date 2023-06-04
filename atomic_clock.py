@@ -2,7 +2,9 @@ from dataclasses import dataclass
 
 
 class Clock:
-    """This class handles all functions to do with storing, retrieving and calculating dates"""
+    """
+    This class handles all functions to do with storing, retrieving and calculating dates
+    """
     def __init__(self, year, day):
         self.year = year
         self.year_day = day
@@ -33,7 +35,9 @@ class Clock:
         self.time = self.get_date()
 
     def tick(self):
-        """Advances the clock one day"""
+        """
+        Advances the clock one day
+        """
         self.year_day += 1
         if self.year_day > self.year_day_maximum:
             self.year_day = 1
@@ -46,8 +50,10 @@ class Clock:
         return Time(self.year_day, self.month_number, self.month, self.date, self.year)
 
     def date_calculation(self):
-        """This function takes the day of the year (self.year_day)
-        and calculates the date, month and day of the week"""
+        """
+        This function takes the day of the year (self.year_day)
+        and calculates the date, month and day of the week
+        """
         month_finder = [(x, y['days']) if isinstance(y['days'], int)
                         else ((x, y['days'][1]) if self.leap_year
                         else (x, y['days'][0]))
@@ -69,8 +75,10 @@ class Clock:
         self.week_day = self.week_days[day_index]
 
     def year_calculation(self):
-        """This routine works out if the current year is a leap year and what day of the week
-        January 1st of the current year is, based on the Gregorian calendar."""
+        """
+        This routine works out if the current year is a leap year and what day of the week
+        January 1st of the current year is, based on the Gregorian calendar.
+        """
         leap_years_since_1582 = (i for i in range(1583, self.year) if i % 4 == 0 and i % 100 != 0 or i % 400 == 0)
         days_to_year_start = ((self.year - 1582) * 365) + len(list(leap_years_since_1582)) + 78
         self.jan_one_day = (days_to_year_start % 7) - 1

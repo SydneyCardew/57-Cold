@@ -1,0 +1,4 @@
+force id,force name,land power,air power,sea power,morale,experience,quality,allegiance,location
+F1,Soviet Test Force,30,30,30,50,10,1,SV,W18
+F2,US Test Force,30,30,30,50,10,1,US,W30
+F3,UK Test Force,30,30,30,50,10,1,UK,W41

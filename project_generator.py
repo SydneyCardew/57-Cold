@@ -4,6 +4,9 @@ import string
 
 
 def generate_project_cards(issue):
+    """
+    Generates a set of project cards.
+    """
     with open("data/project_names.json") as name_file:
         seed()
         data = json.load(name_file)

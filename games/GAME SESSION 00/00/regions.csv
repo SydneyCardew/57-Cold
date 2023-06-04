@@ -1,11 +1,11 @@
-id code,region name,population portion
-R1,Scotland,9
-R2,North West England,12
-R3,North East England,10
-R4,Northern Ireland,5
-R5,The Midlands,13
-R6,The Home Counties,13
-R7,London,13
-R8,Wales,6
-R9,East Anglia,10
-R10,The West Country,9
+id code,region name,population portion,government%,opposition%,liberal%,minor right%,minor left%
+R1,Scotland,9,30,40,15,5,10
+R2,North West England,12,40,40,10,5,5
+R3,North East England,10,35,40,15,5,5
+R4,Northern Ireland,5,50,29,10,5,5
+R5,The Midlands,13,30,35,10,10,5
+R6,The Home Counties,13,60,20,10,5,5
+R7,London,13,50,35,5,5,5
+R8,Wales,6,30,40,10,5,15
+R9,East Anglia,10,50,20,20,5,5
+R10,The West Country,9,50,20,20,5,5

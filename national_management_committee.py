@@ -1,56 +1,13 @@
 from random import seed, randint, uniform
-from statistics import mean
 from dataclasses import dataclass
-from atomic_clock import Clock
-
-
-class Game:
-    """overall container for game objects"""
-
-    def __init__(self, reg_dict, min_dict, dept_dict, world, uk, computer, press_dict):
-        self.reg_dict = reg_dict
-        self.min_dict = min_dict
-        self.dept_dict = dept_dict
-        self.world = world
-        self.uk = uk
-        self.computer = computer
-        self.press_dict = press_dict
-
-    def tick(self):
-        self.world.tick()
-        self.uk.tick()
-        for region in self.reg_dict.values():
-            region.tick(self.uk)
-
-    def poll(self):
-        hmg_pops = []
-        hmo_pops = []
-        lib_pops = []
-        mlwp_pops = []
-        mrwp_pops = []
-        for region in self.reg_dict.values():
-            hmg_pops.extend([region.hmg_pop] * region.pop_portion)
-            hmo_pops.extend([region.hmo_pop] * region.pop_portion)
-            lib_pops.extend([region.lib_pop] * region.pop_portion)
-            mlwp_pops.extend([region.mlwp_pop] * region.pop_portion)
-            mrwp_pops.extend([region.mrwp_pop] * region.pop_portion)
-        hmg_pop = mean(hmg_pops)
-        hmo_pop = mean(hmo_pops)
-        lib_pop = mean(lib_pops)
-        mlwp_pop = mean(mlwp_pops)
-        mrwp_pop = mean(mrwp_pops)
-        return f"CURRENT POLLING:\n" \
-               f"{self.uk.monarch_pronoun} MAJESTY'S GOVERNMENT: {round(hmg_pop, 2)}%\n" \
-               f"{self.uk.monarch_pronoun} MAJESTY'S OPPOSITION: {round(hmo_pop, 2)}%\n" \
-               f"LIBERALS: {round(lib_pop, 2)}%\n" \
-               f"MINOR PARTIES OF THE LEFT: {round(mlwp_pop, 2)}%\n" \
-               f"MINOR PARTIES OF THE RIGHT: {round(mrwp_pop, 2)}%"
-
-
+import string_dicts as sd
 
 
 class Computer:
-
+    """
+    This object stores values and functions related to the operation
+    of the virtual National Management Computer
+    """
     def __init__(self, secret_project_counter, runtime):
         self.secret_project_counter = secret_project_counter
         self.runtime = runtime
@@ -58,25 +15,16 @@ class Computer:
     def tick(self):
         self.runtime += 1
 
-
-class World:
-
-    def __init__(self, year, day):
-        self.year = year
-        self.year_day = day
-        self.clock = Clock(self.year, self.year_day)
-
-    def tick(self):
-        self.clock.tick()
-
-
-class WorldMap:
-
-    def __init__(self):
-        pass
+    def csv_rep(self):
+        return f"secret project counter,{self.secret_project_counter}\n" \
+               f"runtime,{self.runtime}"
 
 
 class UK:
+    """
+    This class stores information and performs functions regarding the
+    state of the UK as a whole.
+    """
 
     def __init__(self, population,
                  population_health,
@@ -90,16 +38,7 @@ class UK:
         self.monarch_pronoun = monarch_pronoun.upper()
         self.political_drift_lr = 0
         self.political_drift_go = 0
-        self.political_movement = {0.1: "almost undetectable",
-                                   0.2: "very weak",
-                                   0.3: "weak",
-                                   0.4: "small but noticeable",
-                                   0.5: "noticeable",
-                                   0.6: "very noticeable",
-                                   0.7: "distinct",
-                                   0.8: "strong",
-                                   0.9: "very strong",
-                                   1.0: "dramatic"}
+        self.political_movement = sd.political_movement_strength_dict()
 
     def political_drift(self, paper, approval):
         """this function transforms the press's reaction to press conferences and statements into opihion vectors"""
@@ -208,26 +147,28 @@ class UK:
     def tick(self):
         pass
 
+    def csv_rep(self):
+        return f"population,{self.population}\n" \
+               f"population health,{self.population_health}\n" \
+               f"stability,{self.stability}\n" \
+               f"government,{self.government}\n" \
+               f"monarch pronoun,{self.monarch_pronoun}"
+
 
 class Region:
+    """
+    This class stores information about a UK region.
+    """
 
-    def __init__(self, id, name, pop_portion, hmg_pop=40, hmo_pop=30, lib_pop=20, mrwp_pop=5, mlwp_pop=5):
+    def __init__(self, id, name, pop_portion, hmg_pop, hmo_pop, lib_pop, mrwp_pop, mlwp_pop):
         self.id = id
         self.name = name
         self.pop_portion = int(pop_portion)
-        self.hmg_pop = hmg_pop
-        self.hmo_pop = hmo_pop
-        self.lib_pop = lib_pop
-        self.mrwp_pop = mrwp_pop
-        self.mlwp_pop = mlwp_pop
-        self.party_pop()
-
-    def party_pop(self):
-        self.party_popularity = {"Her Majesty's Government": self.hmg_pop,
-                                 "Her Majesty's Opposition": self.hmo_pop,
-                                 "Liberal Party": self.lib_pop,
-                                 "Minor Parties of the Right": self.mrwp_pop,
-                                 "Minor Parties of the Left:": self.mlwp_pop}
+        self.hmg_pop = float(hmg_pop)
+        self.hmo_pop = float(hmo_pop)
+        self.lib_pop = float(lib_pop)
+        self.mrwp_pop = float(mrwp_pop)
+        self.mlwp_pop = float(mlwp_pop)
 
     def tick(self, uk):
         self.hmg_pop += uk.political_drift_go / 2
@@ -246,15 +187,21 @@ class Region:
             self.mrwp_pop += uk.political_drift_lr / 2
             self.mlwp_pop -= uk.political_drift_lr / 2
 
-
-
-class WorldRegion:
-
-    def __init__(self):
-        pass
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.pop_portion}," \
+               f"{self.hmg_pop}," \
+               f"{self.hmo_pop}," \
+               f"{self.lib_pop}," \
+               f"{self.mrwp_pop}," \
+               f"{self.mlwp_pop}"
 
 
 class Minister:
+    """
+    This class stores information about a Minister (The PCs)
+    """
 
     def __init__(self, id, name, p_name, region, popularity=0):
         self.id = id
@@ -265,49 +212,56 @@ class Minister:
         self.pm = False
 
     def csv_rep(self):
-        return f"{self.id},{self.name},{self.p_name},{self.region}"
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.p_name}," \
+               f"{self.region}"
 
 
 class Ministry:
-    """This class contains information and methods relating to Ministries"""
+    """
+    This class contains information and functions relating to ministerial departments.
+    """
 
-    def __init__(self, id, name, title, minister, starting_morale=70, f_budget=100, e_budget=20, s_budget=20):
+    def __init__(self,
+                 id,
+                 name,
+                 title,
+                 minister,
+                 starting_morale,
+                 budget,
+                 operating_cost,
+                 experience,
+                 fatigue,
+                 morale_drift,
+                 active_projects,
+                 active_secret_projects,
+                 completed_projects,
+                 completed_secret_projects):
         self.id = id
         self.name = name
         self.title = title
-        self.morale = starting_morale
-        self.f_budget = f_budget
-        self.e_budget = e_budget
-        self.s_budget = s_budget
-        self.experience = 0
-        self.fatigue = 0
-        self.e_projects = []
-        self.s_projects = []
+        self.morale = int(starting_morale)
+        self.budget = int(budget)
+        self.current_budget = self.budget
+        self.operating_cost_annual = int(operating_cost)
+        self.operating_cost_daily = self.operating_cost_annual / 365
+        self.experience = experience
+        self.fatigue = fatigue
+        self.morale_drift = morale_drift
+        self.active_projects = active_projects
+        self.active_secret_projects = active_secret_projects
+        self.completed_projects = completed_projects
+        self.completed_secret_projects = completed_secret_projects
         self.minister = minister
         self.minister.pm = True if self.id == "M10" else False
         self.minister.pop = self.minister.region.hmo_pop if self.id == "M1" \
             else self.minister.region.hmg_pop
-        self.difficulties = {0: "quotidian",
-                             1: "facile",
-                             2: "ordinary",
-                             3: "uncommon",
-                             4: "challenging",
-                             5: "fiendish",
-                             6: "daunting",
-                             7: "awesome",
-                             8: "ridiculous",
-                             9: "utterly absurd",
-                             10: "completely insane"
-                             }
+        self.difficulties = sd.difficulty_dict()
 
-    def action(self, difficulty, cost, secret, in_domain):
+    def action(self, name, difficulty, cost, time, secret, in_domain, id):
         seed()
         modifier = (difficulty * 10 + randint(-difficulty, 0)) - 10
-        a_budget = self.s_budget if secret else self.e_budget
-        a_budget -= cost
-        self.s_budget -= cost if secret else 0
-        self.e_budget -= cost if secret else 0
-        modifier -= (a_budget - difficulty * 5) if a_budget < 0 else 0
         modifier += 10 if secret else 0
         modifier -= self.morale
         modifier -= self.experience
@@ -315,18 +269,27 @@ class Ministry:
         modifier += (modifier * 0.5) if not in_domain else 0
         roll = (randint(1, 100) + modifier)
 
-        outcome = self.result(roll)
+        outcome = sd.result(roll)
         outcome_score, outcome_string = outcome[0], outcome[1]
 
         morale_tuple = self.morale_update(roll, difficulty)
         morale_change, morale_string = morale_tuple[0], morale_tuple[1]
-        self.morale += morale_change
+        self.morale_drift += (morale_change / 10)
         domain_string = "within" if in_domain else "outside"
 
-        action_string = (f"The {self.name} attempts a {'secret' if secret else 'public'}"
+        action_string = (f"The {self.name} attempts {name}, a {'secret' if secret else 'public'}"
                          f" action of {self.difficulties[difficulty]} difficulty. This action "
-                         f"is within the department's domain. The result is "
-                         f"{outcome_string}. This has a{morale_string} effect on departmental morale.")
+                         f"is {domain_string} the department's domain. The result is "
+                         f"{outcome_string}. This has a{morale_string} effect on departmental morale. "
+                         f"it will take at least {time} days for the action to complete.")
+
+        action_project = Project(id, name, cost, time, outcome_score, secret)
+
+        if secret:
+            self.active_secret_projects.append(action_project)
+        else:
+            self.active_projects.append(action_project)
+
         return Outcome(difficulty, cost, secret, roll, morale_change, outcome_score, action_string)
 
     def morale_update(self, score, difficulty):
@@ -349,36 +312,100 @@ class Ministry:
             modifier = (randint(-35, -25))
             return (modifier, "n appalling")
 
-    def result(self, score):
-        if score < 0:
-            return 5, "an unqualified success. The orders are carried out " \
-                   "to the letter, on time, and on budget"
-        elif score >= 1 and score <= 25:
-            return 4, "an almost total success. Perhaps a few minor objectives " \
-                   "are not fully achieved, or it runs slightly over budget," \
-                   "but overall a good result"
-        elif score >= 26 and score <= 50:
-            return 3, "decidedly mixed. Success is either partial, or there are " \
-                   "unforseen negative outcomes"
-        elif score >= 51 and score <= 75:
-            return 2, "very poor. Some progress is made, a few minor objectives achieved, " \
-                   "but overall, the action is a failure"
-        elif score >= 76 and score <= 100:
-            return 1, "an almost total failure. The objectives are not achieved, and there " \
-                   "are serious negative ramifications"
-        else:
-            return 0, "an utter disaster. Not only does the action fail, " \
-                   "it backfires spectacularly"
+    def tick(self):
+        self.morale += self.morale_drift
+        daily_project_cost = 0
+        for project in self.active_projects:
+            if not project.completed:
+                daily_project_cost += project.tick()
+        for project in self.active_secret_projects:
+            if not project.completed:
+                daily_project_cost += project.tick()
+        self.current_budget -= daily_project_cost
+        self.current_budget -= self.operating_cost_daily
+
+    def quick_budget_report(self):
+        return {"name": self.name.upper(),
+                "annual budget": self.budget,
+                "current budget": self.current_budget,
+                "daily operating cost": self.operating_cost_daily,
+                "active projects": self.active_projects,
+                "active secret projects": self.active_secret_projects}
 
     def audit(self):
         pass
 
 
-@dataclass()
 class Project:
     """class storing the ongoing costs of projects"""
-    name: str
-    cost: int
+    def __init__(self,
+                 id,
+                 name,
+                 cost,
+                 time,
+                 outcome,
+                 secret,
+                 completed=False,
+                 imported=False,):
+        self.id = id
+        self.name = name
+        self.cost = int(cost)
+        self.estimated_cost = self.cost
+        self.outcome = int(outcome)
+        self.time = int(time)
+        self.estimated_time = self.time
+        self.timer = 0
+        self.estimated_cost_daily = self.estimated_cost / self.estimated_time
+        self.running_cost = 0
+        if not imported:
+            if self.outcome == 4:
+                self.cost += randint(0, self.cost // 10)
+            elif self.outcome == 3:
+                self.cost += (randint(0, self.cost // 8) + 5)
+                self.time += randint(0, self.time // 10)
+            elif self.outcome == 2:
+                self.cost += (randint(0, self.cost // 6) + 10)
+                self.time += (randint(0, self.time // 8) + 5)
+            elif self.outcome == 1:
+                self.cost += (randint(0, self.cost // 4) + 15)
+                self.time += (randint(0, self.cost // 6) + 10)
+            elif self.outcome == 0:
+                self.cost += (randint(0, self.cost // 2) + 20)
+                self.time += (randint(0, self.cost // 4) + 15)
+            else:
+                pass
+        self.cost_daily = self.cost / self.time
+        self.completed = completed
+        self.secret = secret
+        if not self.completed:
+            self.status_string = "IN PROGRESS"
+        else:
+            self.status_string = "COMPLETED"
+
+    def tick(self):
+        self.timer += 1
+        if self.timer == self.time:
+            self.completed = True
+            self.status_string = "COMPLETED"
+        self.running_cost += self.cost_daily
+        return self.cost_daily
+
+    def quick_budget_report(self):
+        return {"name": self.name.upper(),
+                "eta": self.estimated_time - self.timer,
+                "estimated cost": self.estimated_cost,
+                "estimated daily cost": self.estimated_cost_daily,
+                "actual daily cost": self.cost_daily,
+                "total cost to date": self.running_cost,
+                "estimated remaining cost": self.estimated_cost - self.running_cost}
+
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.cost}," \
+               f"{self.time}," \
+               f"{self.outcome}," \
+               f"{'Y' if self.secret else 'N'}"
 
 
 @dataclass
@@ -408,10 +435,3 @@ class Reaction:
     lr_drift: float
     go_drift: float
     r_string: str
-
-
-
-
-
-
-
