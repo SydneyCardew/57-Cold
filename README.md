@@ -89,19 +89,62 @@ near the machine!
     - L. Smith, 
     NMC Project Director,
     Ministry of Development (J Section)
-
-    
-COMMANDS:
-
-ACT | ACTION <"NAME"> <DIFFICULTY> 
-<COST> <TIME> [--S] [--XD] 
-
-(expand)
-
-ADV | ADVANCE <DAYS>
-
-
-
 ```
+    
+**COMMANDS:**
+
+    ACT | ACTION 
+    <MINISTRY ID> <"NAME">  <DIFFICULTY>  <COST> <TIME> [--S] [--XD] 
+
+Creates a new action, in the form of a project. Difficulty must be an integer 
+from 0 to 10. The [--S] flag creates a secret project, the [--XD] flag specifies
+that the civil service have judged the action to be outside of the ministry's
+domain.
+
+    ADV | ADVANCE 
+    <DAYS>
+
+Advances the simulation by the number specified in <DAYS>, which must be an integer argument.
+
+    CLONE | CLN
+
+Creates a new game session from current session.
+
+    DATE | DAT
+
+Displays the current simulation date.
+
+    POLL
+
+Displays the current political polling.
+
+    PROJECT | PROJ
+
+Generates a new set of secret project names.
+
+    QB  | QUICKBUDGET 
+    <MINISTRY ID>
+
+Gives the quick budget report for the specified ministry.
+
+    QUIT
+
+Ends simulation.
+
+    REACTION | REACT 
+    <PAPER ID> <APPROVAL>
+
+Adds a newspaper's reaction
+to a press conference to
+the political simulation.
+<APPROVAL> must be 'Y'
+or 'N'.
+
+    SAVE
+
+Saves a snapshot of the
+current state.
+
+
 
 
