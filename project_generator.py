@@ -1,6 +1,7 @@
 import json
 from random import seed, shuffle, randint, choice
 import string
+import string_dicts as sd
 
 
 def generate_project_cards(issue):
@@ -36,7 +37,7 @@ def generate_project_cards(issue):
                     card_file.write(f"..*{item}{'.'* (40 - (len(item) + 3))}\n")
                 card_file.write(f"----------------------------------------\n")
                 code_string = ''
-                punctmarks = '!?.+-=#~;:'
+                punctmarks = sd.punctmarks
                 alphabet = string.ascii_uppercase
                 for char in range(40):
                     dice_roll = randint(1, 5)

@@ -15,8 +15,9 @@ class Game:
                  computer,
                  press_dict,
                  force_dict,
-                 current_project_code='P1',
-                 session_id=0):
+                 code,
+                 current_project_code='P1'
+                 ):
         self.reg_dict = reg_dict
         self.min_dict = min_dict
         self.dept_dict = dept_dict
@@ -26,7 +27,7 @@ class Game:
         self.press_dict = press_dict
         self.force_dict = force_dict
         self.current_project_code = current_project_code
-        self.session_id = session_id
+        self.code = code
 
     def tick(self):
         """
@@ -88,7 +89,7 @@ class World:
         self.year = year
         self.year_day = day
         self.clock = Clock(self.year, self.year_day)
-        self.regions = []
+        self.regions = {}
         self.navigation_graph = {}
 
     def tick(self):
@@ -134,7 +135,7 @@ class WorldMapRegion:
         self.hemisphere = hemisphere.upper()
         self.climate = climate.upper()
         self.terrain = terrain.upper()
-        self.edges = edges
+        self.edges = "".join(edges).split(",")
         self.SV_dom = int(SV_dom)
         self.US_dom = int(US_dom)
         self.UK_dom = int(UK_dom)
@@ -152,6 +153,32 @@ class WorldMapRegion:
                           'US': self.US_fort,
                           'UK': self.UK_fort,
                           'NA': self.NA_fort}
+
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.hemisphere}," \
+               f"{self.climate}," \
+               f"{self.terrain}," \
+               f"{self.edge_rep()}," \
+               f"{self.SV_dom}," \
+               f"{self.US_dom}," \
+               f"{self.UK_dom}," \
+               f"{self.crisis_damage}," \
+               f"{self.SV_fort}," \
+               f"{self.US_fort}," \
+               f"{self.UK_fort}," \
+               f"{self.NA_fort}"
+
+    def edge_rep(self):
+        edge_string = '"'
+        for i, edge in enumerate(self.edges):
+            edge_string += edge
+            if i < len(self.edges) - 1:
+                edge_string += ","
+            else:
+                edge_string += '"'
+        return edge_string
 
 
 class Force:
@@ -172,13 +199,13 @@ class Force:
                  location):
         self.id = id
         self.name = name
-        self.land_power = land_power
-        self.air_power = air_power
-        self.sea_power = sea_power
-        self.morale = morale
-        self.experience = experience
-        self.quality = quality
-        self.allegience = allegiance
+        self.land_power = int(land_power)
+        self.air_power = int(air_power)
+        self.sea_power = int(sea_power)
+        self.morale = int(morale)
+        self.experience = int(experience)
+        self.quality = int(quality)
+        self.allegiance = allegiance
         self.location = location
         self.destination = None
         self.path = None
@@ -192,9 +219,83 @@ class Force:
             else self.max_ocean_air_power
 
     def set_total_powers(self):
-        self.oceanic_power = self.ocean_air_power + self.sea_power
-        self.littoral_power = self.sea_power + self.land_power + self.air_power
-        self.continental_power = self.land_power + self.sea_power
+        self.oceanic_power = (self.ocean_air_power + self.sea_power) * self.quality
+        self.littoral_power = (self.sea_power + self.land_power + self.air_power) * self.quality
+        self.continental_power = (self.land_power + self.sea_power) * self.quality
         self.power_dict = {'OCEANIC': self.oceanic_power,
                            'LITTORAL': self.littoral_power,
                            'CONTINENTAL': self.continental_power}
+
+    def fight(self, aggressor, terrain):
+        attack_power = aggressor.power_dict[terrain] * aggressor.quality * (aggressor.morale / 100)
+        defence_power = self.power_dict[terrain] * self.quality * (self.morale / 100)
+        reduction = abs(attack_power - defence_power) / 2
+        enemy_morale_boost = self.take_damage(reduction)
+        return enemy_morale_boost
+
+    def take_damage(self, damage):
+        distro_dict = {'land': self.land_power,
+                       'sea': self.sea_power,
+                       'air': self.air_power}
+        temp = sum(distro_dict.values())
+        for key, val in distro_dict.items():
+            distro_dict[key] = round((val / temp), 2)
+        temp_land_power = self.land_power - (damage * distro_dict['land'])
+        temp_sea_power = self.sea_power - (damage * distro_dict['sea'])
+        temp_air_power = self.air_power - (damage * distro_dict['air'])
+        land_p_reduction = ((self.land_power - temp_land_power) / self.land_power) * 100
+        sea_p_reduction = ((self.sea_power - temp_sea_power) / self.sea_power) * 100
+        air_p_reduction = ((self.air_power - temp_air_power) / self.air_power) * 100
+        temp_morale = self.morale - mean([land_p_reduction, sea_p_reduction, air_p_reduction])
+        morale_diff = abs(temp_morale - self.morale)
+        self.morale = temp_morale
+        self.quality -= morale_diff / 100
+        self.quality = 1 if self.quality < 1 else self.quality
+        self.land_power = temp_land_power
+        self.sea_power = temp_sea_power
+        self.air_power = temp_air_power
+        self.set_ocean_air_power()
+        self.set_total_powers()
+        return morale_diff
+
+    def power_report(self):
+        return f"name: {self.name}. " \
+               f"land power: {self.land_power}, " \
+               f"sea power: {self.sea_power}, " \
+               f"air power: {self.air_power}, " \
+               f"morale: {self.morale}, " \
+               f"quality: {self.quality}"
+
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.land_power}," \
+               f"{self.air_power}," \
+               f"{self.sea_power}," \
+               f"{self.morale}," \
+               f"{self.experience}," \
+               f"{self.quality}," \
+               f"{self.allegiance}," \
+               f"{self.location}"
+
+
+class Conflict:
+
+    def __init__(self,
+                 attack_force,
+                 defence_force,
+                 battleground
+                 ):
+        self.attack_force = attack_force
+        self.defence_force = defence_force
+        self.battleground = battleground
+        self.historical = False
+        self.timer = 0
+
+    def tick(self):
+        self.timer += 1
+        self.attack_force.morale += self.defence_force.fight(self.attack_force, self.battleground.terrain)
+        self.defence_force.morale += self.attack_force.fight(self.defence_force, self.battleground.terrain)
+
+    def disengage_check(self):
+        pass

@@ -28,7 +28,7 @@ def political_movement_strength_dict():
             1.0: "dramatic"}
 
 
-def result(self, score):
+def result(score):
     if score < 0:
         return 5, "an unqualified success. The orders are carried out " \
                   "to the letter, on time, and on budget"
@@ -58,3 +58,7 @@ def local_time_of_day_greeting():
         return "AFTERNOON"
     else:
         return "EVENING"
+
+
+def punctmarks():
+    return '!?.+-=#~;:'

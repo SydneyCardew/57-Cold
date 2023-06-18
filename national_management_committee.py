@@ -246,9 +246,9 @@ class Ministry:
         self.current_budget = self.budget
         self.operating_cost_annual = int(operating_cost)
         self.operating_cost_daily = self.operating_cost_annual / 365
-        self.experience = experience
-        self.fatigue = fatigue
-        self.morale_drift = morale_drift
+        self.experience = int(experience)
+        self.fatigue = int(fatigue)
+        self.morale_drift = float(morale_drift)
         self.active_projects = active_projects
         self.active_secret_projects = active_secret_projects
         self.completed_projects = completed_projects
@@ -335,6 +335,18 @@ class Ministry:
     def audit(self):
         pass
 
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.title}," \
+               f"{self.minister.id}," \
+               f"{self.morale}," \
+               f"{self.budget}," \
+               f"{self.operating_cost_annual}," \
+               f"{self.experience}," \
+               f"{self.fatigue}," \
+               f"{self.morale_drift}"
+
 
 class Project:
     """class storing the ongoing costs of projects"""
@@ -345,6 +357,7 @@ class Project:
                  time,
                  outcome,
                  secret,
+                 ministry,
                  completed=False,
                  imported=False,):
         self.id = id
@@ -355,6 +368,7 @@ class Project:
         self.time = int(time)
         self.estimated_time = self.time
         self.timer = 0
+        self.ministry = ministry
         self.estimated_cost_daily = self.estimated_cost / self.estimated_time
         self.running_cost = 0
         if not imported:
@@ -405,7 +419,28 @@ class Project:
                f"{self.cost}," \
                f"{self.time}," \
                f"{self.outcome}," \
-               f"{'Y' if self.secret else 'N'}"
+               f"{'Y' if self.secret else 'N'}," \
+               f"{'Y' if self.completed else 'N'}," \
+               f"{self.ministry}"
+
+
+class Paper:
+    """class storing the positions of papers"""
+    def __init__(self,
+                 id,
+                 name,
+                 ideology,
+                 endorsement):
+        self.id = id
+        self.name = name
+        self. ideology = ideology
+        self. endorsement = endorsement
+
+    def csv_rep(self):
+        return f"{self.id}," \
+               f"{self.name}," \
+               f"{self.ideology}," \
+               f"{self.endorsement}"
 
 
 @dataclass
@@ -418,15 +453,6 @@ class Outcome:
     morale_change: int
     outcome_score: int
     a_string: str
-
-
-@dataclass
-class Paper:
-    """class storing the positions of papers"""
-    id: str
-    name: str
-    ideology: str
-    endorsement: str
 
 
 @dataclass

@@ -1,4 +1,4 @@
-from import_export import importer
+from import_export import importer, exporter, cloner
 from error_handler import error_handler
 from project_generator import generate_project_cards
 import re
@@ -33,18 +33,22 @@ def NMC(input, loaded):
                 return NMC_action(command[1:])
             case ['ADVANCE' | 'ADV', *day_args]:
                 return NMC_advance(day_args)
+            case ['CLONE' | 'CLN']:
+                return NMC_clone()
             case ['DATE' | 'DAT']:
                 return NMC_date()
             case ['POLL']:
                 return NMC_poll()
             case ['PROJECT' | 'PROJ']:
                 return NMC_projects()
-            case ['REACTION' | 'REACT', *react_args]:
-                return NMC_react(react_args)
             case ['QUICKBUDGET' | 'QB', *qb_args]:
                 return NMC_quickbudget(qb_args)
             case ['QUIT']:
                 return ["QUIT"]
+            case ['REACTION' | 'REACT', *react_args]:
+                return NMC_react(react_args)
+            case ['SAVE' | 'SV']:
+                return NMC_save()
             case _:
                 return ["INVALID INPUT"]
 
@@ -137,6 +141,11 @@ def NMC_advance(args):
             return [f"{date}\nADVANCING {days} DAYS", f"LOAD+ {days}"]
 
 
+def NMC_clone():
+    new_code = str(int(game.code) + 1).zfill(2)
+    return cloner(game.code, new_code)
+
+
 def NMC_date():
     """
     The DATE keyword. Returns a single line string which shows  the current date as a list
@@ -162,36 +171,6 @@ def NMC_projects():
     generate_project_cards(issue)
     game.computer.secret_project_counter += 1
     return [f"GENERATED SECRET PROJECTS CARDS, ISSUE {issue}"]
-
-
-def NMC_react(args):
-    """
-    The REACTION/REACT keyword. REACT applies the affect
-    of the press's reaction to a press conference or
-    statement. Tt calls the UK object's 'political_drift()' function
-    with the given inputs, applying changes to the direction of
-    national political opinion.
-
-    arguments:
-    paper -- id code of the paper
-    approval -- boolean of the approval ('Y' or 'N')
-
-    returns a string describing the result.
-    """
-    if len(args) < 2:
-        return(error_handler(5))
-    else:
-        paper = args[0]
-        approval = args[1]
-        if paper not in game.press_dict.keys():
-            return(error_handler(8))
-        elif approval not in ('Y', 'N'):
-            return(error_handler(9))
-        else:
-            paper_obj = game.press_dict[paper]
-            approval_bool = True if approval == 'Y' else False
-            result = game.uk.political_drift(paper_obj, approval_bool)
-            return [f"REPORT: {result.r_string}"]
 
 
 def NMC_quickbudget(args):
@@ -256,6 +235,41 @@ def NMC_quickbudget(args):
                                                  total_daily_cost)
 
         return [report_string]
+
+
+def NMC_react(args):
+    """
+    The REACTION/REACT keyword. REACT applies the affect
+    of the press's reaction to a press conference or
+    statement. Tt calls the UK object's 'political_drift()' function
+    with the given inputs, applying changes to the direction of
+    national political opinion.
+
+    arguments:
+    paper -- id code of the paper
+    approval -- boolean of the approval ('Y' or 'N')
+
+    returns a string describing the result.
+    """
+    if len(args) < 2:
+        return(error_handler(5))
+    else:
+        paper = args[0]
+        approval = args[1]
+        if paper not in game.press_dict.keys():
+            return(error_handler(8))
+        elif approval not in ('Y', 'N'):
+            return(error_handler(9))
+        else:
+            paper_obj = game.press_dict[paper]
+            approval_bool = True if approval == 'Y' else False
+            result = game.uk.political_drift(paper_obj, approval_bool)
+            return [f"REPORT: {result.r_string}"]
+
+
+def NMC_save():
+    code = game.code
+    return exporter(game, code)
 
 
 def project_total_block(total_project_cost, total_remaining_cost, total_daily_cost):
